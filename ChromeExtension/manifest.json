@@ -1,0 +1,23 @@
+{
+  // Required
+  "manifest_version": 3,
+  "name": "Attested Credentials Google Forms Extension",
+  "version": "0.0.1",
+
+  // Recommended
+  // "action": {...},
+  //"default_locale": "en",
+  "description": "Allows a user with Metamask installed to prove ownership of an Ethereum address.",
+  // "icons": {...},
+
+  // Optional
+  "author": "k.stricker@gmail.com",  
+  "permissions": ["activeTab", "scripting", "webNavigation"],
+  "host_permissions": [
+    "https://docs.google.com/forms/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+	"type" : "module"
+  }
+}
