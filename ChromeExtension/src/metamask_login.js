@@ -1,6 +1,6 @@
 
 export async function metamask(actionButton, inputField) {
-  const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+  const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
   const domain = window.location.host;
   const from = accounts[0];
   const array = new Uint32Array(1);

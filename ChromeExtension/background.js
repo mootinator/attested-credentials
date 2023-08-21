@@ -1,4 +1,5 @@
-chrome.webNavigation.onDOMContentLoaded.addListener((details) => {
+
+chrome.webNavigation.onCompleted.addListener((details) => {
   chrome.scripting.executeScript({
     target: {tabId: details.tabId},
 	  files: ['dist/main.js']
