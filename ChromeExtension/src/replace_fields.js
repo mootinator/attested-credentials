@@ -1,13 +1,7 @@
 import {eas} from './form_attestation';
 import {metamask} from './metamask_login';
-import { MetaMaskSDK } from '@metamask/sdk';
 
-async function connectWallet() {
-	return await ethereum.request({
-		method: "eth_requestAccounts",
-		params: [],
-	  });
-  }
+
 
 async function process_page() {
 	console.log("Called process_page");
@@ -15,28 +9,48 @@ async function process_page() {
 	const EAS_XPATH = "//span[text()='Attest Using EAS']";
 	const question_types = [{xpath: METAMASK_XPATH, buttonText: "Sign in with Ethereum", func: metamask }, {xpath: EAS_XPATH, buttonText:"Attest This Form", func: eas }];
 	var doConnect = false;
+	var matchingElement = null;
+	var address = null;
+	var i = 0;
 	question_types.forEach(
-		function(question) {
-				var matchingElement = document.evaluate(question.xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+		async function(question) {
+				i++;
+				matchingElement = document.evaluate(question.xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 				if (matchingElement) {
-					doConnect = true;
 					var questionRoot = matchingElement.closest("[role='listitem']");
 					var inputContainer = questionRoot.querySelectorAll("div[jscontroller]")[1];
 					let inputField = inputContainer.querySelector("input[type='text']");
 					inputContainer.style.display="none";
 					let siwe = document.createElement('BUTTON');
+					siwe.setAttribute("id", "attested_button_" + i);
 					let text = document.createTextNode(question.buttonText);
 					siwe.appendChild(text);
+					if (!doConnect) {
+						address = document.createElement("INPUT");
+						address.setAttribute("type", "hidden");
+						address.setAttribute("name", "attested_plugin_response");
+						address.setAttribute("id", "attested_plugin_response");
+						inputContainer.insertAdjacentElement("beforebegin",address);
+						var connectEvent = new CustomEvent("attested_forms_connect", {
+							detail: { writeToId: "attested_plugin_response" },
+							});
+						await document.dispatchEvent(connectEvent);
+					}
 					inputContainer.insertAdjacentElement("beforebegin",siwe);
-					siwe.onclick = question.func.bind(this, siwe, inputField);
+					doConnect = true;	
+					siwe.onclick = question.func.bind(this, siwe, inputField, "attested_plugin_response");
 				}
 		}
 	);
-	if (doConnect) {
-		await connectWallet();
-	}
 }
-const MMSDK = new MetaMaskSDK({});
-const ethereum = MMSDK.getProvider();
 
-await process_page();
+function embed() {
+	var s = document.createElement('script');
+	s.src = chrome.runtime.getURL('dist/in_page.js');
+	s.onload = async function() { await process_page(); this.remove(); };
+	// see also "Dynamic values in the injected code" section in this answer
+	(document.head || document.documentElement).appendChild(s);
+}
+
+embed();
+

@@ -1,12 +1,11 @@
 
-export async function metamask(actionButton, inputField) {
-  const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+export async function metamask(actionButton, inputField, addressField) {
   const domain = window.location.host;
-  const from = accounts[0];
+  const from = document.getElementById(addressField).getAttribute("value");
   const array = new Uint32Array(1);
   crypto.getRandomValues(array);
   const siweMessage = `${domain} wants you to sign in with your Ethereum account:\n${from}\n\nI accept the MetaMask Terms of Service: https://community.metamask.io/tos\n\nURI: https://${domain}\nVersion: 1\nChain ID: 1\nNonce: ${array[0]}\nIssued At: ${new Date().toISOString()}`;
-  await siweSign(siweMessage, actionButton, inputField, accounts);
+  await siweSign(siweMessage, actionButton, inputField, from);
 }
 
 String.prototype.hexEncode = function(){
@@ -16,25 +15,28 @@ String.prototype.hexEncode = function(){
     '');
 }
 
-const siweSign = async (siweMessage, actionButton, inputField, accounts) => {
-  try {
-    const from = accounts[0];
+const siweSign = async (siweMessage, actionButton, inputField, account) => {
+    const from = account;
     const msg = `0x${siweMessage.hexEncode()}`;
-    const sign = await ethereum.request({
-      method: 'personal_sign',
-      params: [msg, from],
+
+    var loginEvent = new CustomEvent("attested_forms_request", {
+      detail: { 
+        writeToId: inputField.getAttribute("id"),
+        resultTextId: actionButton.getAttribute("id"),
+        request: {
+          method: 'personal_sign',
+          params: [msg, from]
+        }
+      }
     });
-    inputField.value = sign;
+    await document.dispatchEvent(loginEvent);
+
     var event = new Event('input', {
       bubbles: true,
       cancelable: true,
     });
     inputField.dispatchEvent(event);
-    actionButton.innerText = accounts[0];
-  } catch (err) {
-    console.error(err);
-    actionButton.innerText = `Error: ${err.message}`;
-  }
+    actionButton.innerText = account;
 }
 
 

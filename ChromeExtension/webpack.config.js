@@ -1,9 +1,9 @@
 const path = require('path');
 
 module.exports = {
-  entry: './src/replace_fields.js',
+  entry: { main: './src/replace_fields.js', in_page: './src/in_page.js' },
   output: {
-    filename: 'main.js',
+    filename: '[name].js',
     path: path.resolve(__dirname, 'dist'),
   },
 };
