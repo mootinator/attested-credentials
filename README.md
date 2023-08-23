@@ -1,6 +1,7 @@
 # attested-credentials
 
 To test the chrome extension:
+-----------------------------
 
 1. Navigate to the ChromeExtension folder.
 2. Install dependencies
