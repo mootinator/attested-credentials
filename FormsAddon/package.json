@@ -1,0 +1,19 @@
+{
+  "name": "attested-credentials-scorer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@ethereum-attestation-service/eas-sdk": "^1.1.0-beta.3",
+    "@google-cloud/local-auth": "^3.0.0",
+    "@google-cloud/pubsub": "^4.0.1",
+    "@googleapis/forms": "^2.0.2",
+    "ethers": "^6.7.1",
+    "path": "^0.12.7"
+  }
+}

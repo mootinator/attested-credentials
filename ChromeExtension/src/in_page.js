@@ -2,6 +2,11 @@ import { EAS, Offchain, SchemaEncoder, SchemaRegistry } from "@ethereum-attestat
 import { BrowserProvider } from 'ethers/providers';
 
 export const EASContractAddress = "0xAcfE09Fd03f7812F022FBf636700AdEA18Fd2A7A"; // Base Goerli v0.27
+ 
+// Gets a default provider (in production use something else like infura/alchemy)
+export const provider = new BrowserProvider(window.ethereum, 84531);
+
+BigInt.prototype.toJSON = function() { return this.toString() }
 
 document.addEventListener("attested_forms_create_attestation", async function(e) {
   const arr = new Uint32Array(1);
@@ -9,10 +14,6 @@ document.addEventListener("attested_forms_create_attestation", async function(e)
 
   // Initialize the sdk with the address of the EAS Schema contract address
   const eas = new EAS(EASContractAddress);
-
-  // Gets a default provider (in production use something else like infura/alchemy)
-  const provider = new BrowserProvider(window.ethereum, 84531);
-
 
   // Connects an ethers style provider/signingProvider to perform read/write functions.
   // MUST be a signer to do write operations!
@@ -47,42 +48,32 @@ document.addEventListener("attested_forms_create_attestation", async function(e)
   }, signer);
   //writeToId
   //resultTextId
-  var resultField = document.getElementById(e.detail.writeToId);
-  resultField.value = offchainAttestation;
+  var resultField = document.querySelector("input[jsname='" + e.detail.writeToJsName + "']");
+  resultField.setAttribute("value", JSON.stringify(offchainAttestation));
+  var event = new Event('input', {
+    bubbles: true,
+    cancelable: true,
+  });
+  resultField.dispatchEvent(event);
 
   var buttonField = document.getElementById(e.detail.resultTextId);
   buttonField.innerText = accounts[0];
   } catch (err) {
+    console.log(err);
     var buttonField = document.getElementById(e.detail.resultTextId);
     buttonField.innerText = err.message;
   }
 });
 
-async function attested_connectWallet() {
-	return await ethereum.request({
-		method: "eth_requestAccounts",
-		params: [],
-	  });
-  }
-
-
-  async function attested_request(request, responseField) {
-    var response = await ethereum.request(request);
-    responseField.setAttribute("value", response);
-  }
-
-  /*
-document.addEventListener("attested_forms_connect", async function(e) {
-    var accounts = await attested_connectWallet();
-    var responseField = document.getElementById(e.detail.writeToId);
-    responseField.setAttribute("value", accounts[0]);
-});
-*/
-
-document.addEventListener("attested_forms_request", async function(e) {
+document.addEventListener("attested_forms_sign_message", async function(e) {
+    var accounts = await provider.send("eth_requestAccounts", []);
     try {
-        var responseField = document.getElementById(e.detail.writeToId);
-        await attested_request(e.detail.request, responseField);
+        var signer = await provider.getSigner(accounts[0]);
+        var resultField = document.querySelector("input[jsname='" + e.detail.writeToJsName + "']");
+        var response = await signer.signMessage(e.detail.message);
+        resultField.setAttribute("value", response);
+        var buttonField = document.getElementById(e.detail.resultTextId);
+        buttonField.innerText = accounts[0];
     } catch (err) {
         console.error(err);
         document.getElementById(e.detail.resultTextId).innerText = `Error: ${err.message}`;

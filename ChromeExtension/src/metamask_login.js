@@ -19,14 +19,11 @@ const siweSign = async (siweMessage, actionButton, inputField, account) => {
     const from = account;
     const msg = `0x${siweMessage.hexEncode()}`;
 
-    var loginEvent = new CustomEvent("attested_forms_request", {
+    var loginEvent = new CustomEvent("attested_forms_sign_message", {
       detail: { 
-        writeToId: inputField.getAttribute("id"),
+        writeToJsName: inputField.getAttribute("jsname"),
         resultTextId: actionButton.getAttribute("id"),
-        request: {
-          method: 'personal_sign',
-          params: [msg, from]
-        }
+        message: msg
       }
     });
     await document.dispatchEvent(loginEvent);
